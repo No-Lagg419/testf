@@ -1,50 +1,56 @@
--- 🐲 Grow a Garden Pet Scaler with GUI (40KG baseline)
+-- 🐾 Grow a Garden - Pet Scaler for PetsPhysical only
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local playerName = player.Name
-local BASE_KG = 40 -- 40KG = perfect look
+local BASE_KG = 40 -- 40KG = perfect proportions
 
--- Base proportions para hindi magbago shape
+-- Base proportions
 local BODY_BASE   = Vector3.new(1, 6, 1)
 local WINGS_BASE  = Vector3.new(3, 1, 3)
 local TAIL_BASE   = Vector3.new(2, 2, 2)
 
--- Function to scale pets inside Workspace.<playerName>
-local function scalePet(scaleFactor)
-    local playerFolder = workspace:FindFirstChild(playerName)
-    if not playerFolder then warn("⚠ Player folder not found.") return end
+-- Scale function
+local function scalePets(scaleFactor)
+    local petsFolder = workspace:FindFirstChild("PetsPhysical")
+    if not petsFolder then
+        warn("⚠ PetsPhysical folder not found.")
+        return
+    end
 
-    for _, obj in ipairs(playerFolder:GetDescendants()) do
-        if obj:IsA("MeshPart") then
-            obj.Size = Vector3.new(
-                BODY_BASE.X * scaleFactor,
-                BODY_BASE.Y * scaleFactor,
-                BODY_BASE.Z * scaleFactor
-            )
-        elseif obj:IsA("SpecialMesh") then
-            local name = obj.Parent.Name:lower()
-            if name:find("body") then
-                obj.Scale = BODY_BASE * scaleFactor
-            elseif name:find("wing") then
-                obj.Scale = WINGS_BASE * scaleFactor
-            elseif name:find("tail") then
-                obj.Scale = TAIL_BASE * scaleFactor
-            else
-                obj.Scale = obj.Scale * scaleFactor
+    for _, pet in ipairs(petsFolder:GetChildren()) do
+        if pet:IsA("Model") then
+            for _, obj in ipairs(pet:GetDescendants()) do
+                if obj:IsA("MeshPart") then
+                    obj.Size = Vector3.new(
+                        BODY_BASE.X * scaleFactor,
+                        BODY_BASE.Y * scaleFactor,
+                        BODY_BASE.Z * scaleFactor
+                    )
+                elseif obj:IsA("SpecialMesh") then
+                    local partName = obj.Parent.Name:lower()
+                    if partName:find("body") then
+                        obj.Scale = BODY_BASE * scaleFactor
+                    elseif partName:find("wing") then
+                        obj.Scale = WINGS_BASE * scaleFactor
+                    elseif partName:find("tail") then
+                        obj.Scale = TAIL_BASE * scaleFactor
+                    else
+                        obj.Scale = obj.Scale * scaleFactor
+                    end
+                end
             end
         end
     end
-    print("✅ Pets scaled x"..scaleFactor)
+    print("✅ Scaled pets with factor:", scaleFactor)
 end
 
--- Function to reset pet to default proportions
-local function resetPet()
-    scalePet(1)
+-- Reset pets
+local function resetPets()
+    scalePets(1)
 end
 
--- GUI
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.ResetOnSpawn = false
+-- GUI (CoreGui para hindi madelete)
+local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+gui.Name = "PetScaler"
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 220, 0, 160)
@@ -65,7 +71,6 @@ local inputKG = Instance.new("TextBox", frame)
 inputKG.Size = UDim2.new(1, -20, 0, 30)
 inputKG.Position = UDim2.new(0, 10, 0, 40)
 inputKG.PlaceholderText = "Enter KG"
-inputKG.Text = ""
 inputKG.Font = Enum.Font.Gotham
 inputKG.TextSize = 14
 inputKG.TextColor3 = Color3.new(0, 0, 0)
@@ -76,7 +81,6 @@ local inputScale = Instance.new("TextBox", frame)
 inputScale.Size = UDim2.new(1, -20, 0, 30)
 inputScale.Position = UDim2.new(0, 10, 0, 80)
 inputScale.PlaceholderText = "Manual Scale (e.g. 2)"
-inputScale.Text = ""
 inputScale.Font = Enum.Font.Gotham
 inputScale.TextSize = 14
 inputScale.TextColor3 = Color3.new(0, 0, 0)
@@ -92,6 +96,7 @@ btnKG.Font = Enum.Font.GothamBold
 btnKG.TextSize = 14
 btnKG.TextColor3 = Color3.new(0, 0, 0)
 Instance.new("UICorner", btnKG).CornerRadius = UDim.new(0, 6)
+btnKG.Parent = frame
 
 local btnManual = btnKG:Clone()
 btnManual.Text = "Apply Manual Scale"
@@ -108,7 +113,7 @@ btnKG.MouseButton1Click:Connect(function()
     local kgValue = tonumber(inputKG.Text)
     if kgValue then
         local scaleFactor = kgValue / BASE_KG
-        scalePet(scaleFactor)
+        scalePets(scaleFactor)
     else
         warn("⚠ Enter valid KG")
     end
@@ -117,12 +122,12 @@ end)
 btnManual.MouseButton1Click:Connect(function()
     local scaleValue = tonumber(inputScale.Text)
     if scaleValue then
-        scalePet(scaleValue)
+        scalePets(scaleValue)
     else
         warn("⚠ Enter valid scale value")
     end
 end)
 
 btnReset.MouseButton1Click:Connect(function()
-    resetPet()
+    resetPets()
 end)
